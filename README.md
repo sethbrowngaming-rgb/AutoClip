@@ -7,7 +7,7 @@ anywhere: it runs on your own computer with FFmpeg and a little Python.
 - Scans the **whole video** and keeps every moment that stands out (yelling, reactions,
   explosions, big gameplay moments). More eventful video = more clips; dead air = none.
 - Clips never overlap and are named `clip001.mp4`, `clip002.mp4`, ... in video order.
-- Optional **phone-size 9:16 output** (1080x1920) for YouTube Shorts, TikTok and Reels.
+- Clips come out **phone-shaped (9:16, 1080x1920)** by default, ready for YouTube Shorts, TikTok and Reels. Widescreen, portrait and rotated phone footage all end up the same shape.
 - Optional `--skip` ranges to ignore an intro, a break, or anything after a certain time.
 - Writes `clips_list.txt` with each clip's start/end time in the original video.
 
@@ -40,15 +40,18 @@ python autoclip.py "C:\Videos\stream.mp4" --out "D:\MyClips"
 Use a different `--out` folder for each video: every run starts at `clip001.mp4` and overwrites
 files with the same name.
 
-### Phone-size clips for Shorts / TikTok / Reels
+### Phone-shaped clips (the default)
+
+Every clip is 1080x1920 (9:16), so it fills a phone screen for Shorts, TikTok and Reels. Your full
+picture sits in the middle of the frame over a blurred copy of the video. Add `--style crop` to zoom
+into the center instead (cuts off the sides).
+
+Phone-shaped clips are re-encoded, so they take longer than plain cuts. To keep the original wide
+shape (and get fast, lossless cuts), add `--landscape`:
 
 ```
-python autoclip.py stream.mp4 --vertical
+python autoclip.py stream.mp4 --landscape
 ```
-
-`--vertical` fits your full picture in the middle of a 1080x1920 frame over a blurred copy of the
-video. Add `--style crop` to zoom into the center instead (cuts off the sides). Vertical clips are
-re-encoded, so they take longer than plain cuts; try a normal run first to preview.
 
 ### Skip parts of the video
 
@@ -66,14 +69,14 @@ ends. A skip that starts after the end of the video is ignored with a warning.
 | `--quality N` | How much a moment must stand out to count (default `2`). Lower = more clips (`1` is loose), higher = fewer, stronger clips (`3` is picky). |
 | `--per MIN` | Optional cap: at most one clip per `MIN` minutes of video on average. |
 | `--length SEC` | Clip length in seconds (default `30`). |
-| `--vertical` | 9:16 phone-size clips (1080x1920). |
-| `--style blur\|crop` | With `--vertical`: blurred background (default) or center crop. |
+| `--landscape` | Keep the video's original shape instead of making phone-shaped 9:16 clips. |
+| `--style blur\|crop` | Phone-shaped clips: blurred background (default) or center crop. |
 | `--skip START-END` | Ignore a time range. Repeatable. |
 | `--count N` | Make exactly the best N clips instead of auto mode. |
 | `--min-gap SEC` | With `--count`: minimum seconds between clips (default 60). |
 | `--all` | Tile the whole video: as many non-overlapping clips as fit, good or not. |
 | `--use-video` | Also score visual action (scene changes). Slower. |
-| `--reencode` | Re-encode for frame-accurate cuts (default is fast stream copy, which can start a second or two off). |
+| `--reencode` | With `--landscape`: re-encode for frame-accurate cuts (the default there is fast stream copy, which can start a second or two off). |
 | `--out FOLDER` | Output folder (default `clips`). |
 
 If you get too many or too few clips, adjust `--quality`. When it finishes it prints the ratio it

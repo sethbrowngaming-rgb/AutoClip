@@ -6,12 +6,13 @@ Default (auto) mode scans the WHOLE video and keeps every moment that stands out
 what is going on around it (reactions, yelling, explosions, big gameplay moments).
 Longer or more eventful videos get more clips, quiet or dead stretches get none.
 Clips never overlap and are named clip001.mp4, clip002.mp4, ... in video order.
+Clips are always phone-shaped (9:16, 1080x1920) for Shorts/TikTok/Reels unless you pass --landscape.
 
 Requirements: Python 3.8+, numpy (pip install numpy), FFmpeg + ffprobe on PATH.
 
 Examples:
   python autoclip.py "C:/Videos/stream.mp4"                    # auto: as many good clips as it finds
-  python autoclip.py stream.mp4 --vertical                     # phone-size 9:16 clips
+  python autoclip.py stream.mp4 --landscape                    # keep the original wide shape instead of phone-size
   python autoclip.py stream.mp4 --quality 1                    # pickier or looser (see below)
   python autoclip.py stream.mp4 --skip 0-5:00 --skip 2:00:00-end
   python autoclip.py stream.mp4 --count 15                     # exactly the best 15 instead
@@ -216,7 +217,7 @@ def cut(path, start, end, out, vertical, reencode, style="blur"):
            "-movflags", "+faststart"]
     if vertical and style == "crop":
         # zoom into the center 9:16 slice (cuts off the sides)
-        cmd += ["-vf", "crop=ih*9/16:ih,scale=1080:1920"] + enc
+        cmd += ["-vf", "crop=ih*9/16:ih,scale=1080:1920,setsar=1"] + enc
     elif vertical:
         # full picture fitted in the middle of a 1080x1920 frame,
         # with a blurred copy of the video filling the top and bottom
@@ -251,9 +252,11 @@ def main():
     ap.add_argument("--min-gap", type=float, default=None, help="with --count: min seconds between clip peaks (default 60)")
     ap.add_argument("--out", default="clips", help="output folder (default ./clips)")
     ap.add_argument("--use-video", action="store_true", help="also score visual action (slower)")
-    ap.add_argument("--vertical", action="store_true", help="make 9:16 phone-size clips (1080x1920) for Shorts/TikTok/Reels")
+    ap.add_argument("--landscape", action="store_true",
+                    help="keep the video's original shape instead of making phone-shaped 9:16 clips (the default)")
+    ap.add_argument("--vertical", action="store_true", help=argparse.SUPPRESS)  # old option, 9:16 is the default now
     ap.add_argument("--style", choices=["blur", "crop"], default="blur",
-                    help="with --vertical: 'blur' keeps the whole picture over a blurred background (default); 'crop' zooms into the center")
+                    help="phone-shaped clips: 'blur' keeps the whole picture over a blurred background (default); 'crop' zooms into the center")
     ap.add_argument("--skip", action="append", default=[], metavar="START-END",
                     help="ignore a time range (repeatable). Examples: --skip 0-5:00  --skip 1:20:00-1:35:00  --skip 2:00:00-end")
     ap.add_argument("--reencode", action="store_true", help="re-encode instead of fast stream copy (frame-accurate cuts)")
@@ -293,7 +296,7 @@ def main():
     log = []
     for n, (s, e, sc) in enumerate(picks, 1):
         name = out_dir / f"clip{n:03d}.mp4"
-        cut(video, s, e, name, a.vertical, a.reencode, a.style)
+        cut(video, s, e, name, not a.landscape, a.reencode, a.style)
         line = f"{name.name}  [{fmt(s)} - {fmt(e)}]  score {sc:.2f}"
         print("  " + line)
         log.append(line)
