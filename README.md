@@ -17,7 +17,7 @@ and a little Python.
   kept under TikTok/Reels size limits, audio leveled to about -14 LUFS.
 - Optional `--skip` ranges to ignore an intro, a break, or anything after a certain time.
 - Clips never overlap and are named `clip001.mp4`, `clip002.mp4`, ... in video order, with a
-  `clips_list.txt` of each clip's time in the original video.
+  `clips_list.txt` that ranks them from highest score to lowest with each clip's time in the original video.
 
 ## Install
 

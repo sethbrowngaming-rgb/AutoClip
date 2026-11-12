@@ -415,13 +415,17 @@ def main():
         sys.exit("Couldn't find any highlights. Try a lower --quality (like 2).")
 
     print(f"\nCutting {len(picks)} clips into {out_dir}/")
-    log = []
+    rows = []
     for n, (s, e, sc) in enumerate(picks, 1):
-        name = out_dir / f"clip{n:03d}.mp4"
+        name = out_dir / f"clip{n:03d}.mp4"           # files are numbered in video order
         cut(video, s, e, name, not a.landscape, a.reencode, a.style, preset, not a.no_normalize)
-        line = f"{name.name}  [{fmt(s)} - {fmt(e)}]  {e - s:.0f}s  score {sc:.1f}"
+        print(f"  cut {name.name} ({n}/{len(picks)})")
+        rows.append((sc, f"{name.name}  [{fmt(s)} - {fmt(e)}]  {e - s:.0f}s  score {sc:.1f}"))
+    rows.sort(key=lambda r: -r[0])                    # the list is ranked best first
+    log = [f"{rank}. {line}" for rank, (_, line) in enumerate(rows, 1)]
+    print("\nBest clips first:")
+    for line in log:
         print("  " + line)
-        log.append(line)
     (out_dir / "clips_list.txt").write_text("\n".join(log) + "\n", encoding="utf-8")
     if usable_min > 0:
         print(f"\nDone: {len(picks)} clips from {usable_min:.1f} min of video "
